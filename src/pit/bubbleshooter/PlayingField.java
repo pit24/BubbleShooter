@@ -17,9 +17,6 @@ public class PlayingField {
 	private int mBubbleRadius; // радиус пузырей
 	private int mSpacing; // отступ между пузырями в сетке
 
-	public ArrayList<Bubble> mBubbleArrFly; // динамический массив летящих
-											// пузырей
-
 	public ArrayList<RadiusChange> mListener; // слушатели изменеия радиуса
 
 	public Bubble mBubbleNext, mBubbleInGun, mBubbleFly; // пузыри:
@@ -34,17 +31,17 @@ public class PlayingField {
 		mBHorisontal = 10; // задаем количество пузырей по горизонтали
 		mBVertical = 15; // количество пузырей по вертикали
 
-		mBubbleArrFly = new ArrayList<Bubble>();
 		СalculateSize(width, height);
 
 		// сетка для размещения прилипших пузырей
 		mGrid = new Grid(mBHorisontal, mBVertical, mBubbleRadius, mSpacing);
 		addRadiusListener(mGrid);
+		
 		// зарядим пушку
 		GunCharge();
 
 		// накидаем пузырьков
-		mGrid.CreateFixedBubbles();
+		mGrid.CreateFixedBubbles(this);
 
 	}
 
@@ -99,10 +96,8 @@ public class PlayingField {
 		// if (mBubbleNext.ReDrawNeed())
 		mBubbleNext.draw(mCanvas, mX, mY);
 
-		// отрисовка летящих пузырей
-		for (int i = 0; i < mBubbleArrFly.size(); i++) {
-			mBubbleArrFly.get(i).draw(mCanvas, mX, mY);
-		}
+		// отрисовка летящего пузыря
+		if (mBubbleFly!=null) mBubbleFly.draw(mCanvas, mX, mY);
 
 		// отрисовка висящих пузырей
 		mGrid.draw(mCanvas, mX, mY);
@@ -121,24 +116,23 @@ public class PlayingField {
 
 	public int UpdatePosition() {
 		int FixId;
-		for (int i = 0; i < mBubbleArrFly.size(); i++) {
-			mBubbleArrFly.get(i).UpdatePosition(mWidth, mHeight);
-			FixId = mGrid.ifTouch(mBubbleArrFly.get(i));
+		if (mBubbleFly!=null){
+			mBubbleFly.UpdatePosition(mWidth, mHeight);
+			FixId = mGrid.ifTouch(mBubbleFly);
 			if (FixId >= 0) {
 				int[] mas = mGrid.GetNear(FixId);
-				int sector = mGrid.GetTouchSector(FixId, mBubbleArrFly.get(i));
+				int sector = mGrid.GetTouchSector(FixId, mBubbleFly);
 				// тут нужно поставить летящий пузырь в сетку с id=mas[sector]
-				if (mGrid.addInGrig(mBubbleArrFly.get(i), mas[sector]))
-					mBubbleArrFly.remove(i);
-				break;
-
+				mGrid.addInGrig(mBubbleFly, mas[sector], this);
+				mBubbleFly=null;
 			}
-			if (mBubbleArrFly.get(i).GetPosition().y < 0) {
-				mBubbleArrFly.get(i).dispose();
-				mBubbleArrFly.remove(i);
-
+			
+			if (mBubbleFly!=null && mBubbleFly.GetPosition().y < 0) {
+				mBubbleFly.dispose();
+				mBubbleFly=null;
 			}
 		}
+		//Удалим из сетки лопнутые пузыри
 		mGrid.delFixBubble();
 
 		return mGrid.getEndGame();

@@ -1,7 +1,6 @@
 package pit.bubbleshooter;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -13,15 +12,14 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 	public GameView mGameView;
 
 	public SurfaceHolder mSurfaceHolder;
-
+	
 	// флаг говорящий о том, что можно использовать mSurfaceHolder
 	private boolean mSurfaceActive;
-	
+		
 	// флаг игра не завершена
 	private boolean mGameStarted;
-	
-	
-	// поток рисования и (пока) вычислений и игровой логики
+		
+	// поток рисования и вычислений (игровой логики)
 	public GameThread mGameThread;
 	
 	
@@ -39,12 +37,14 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 		
 		mGameStarted=false;
 		
+		//считаем ресурсы в глобальные свойства
 		GlobalParam.mBitmap=BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.bubble);
 		GlobalParam.mBitmapFon=BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.fon2);
+		
 		GlobalParam.mScores=0;
 	}
 
-	// ////Реализуем интерфейс обратного вызова для mGameView
+	// Реализуем интерфейс обратного вызова для mGameView
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		float x = event.getX();
@@ -52,30 +52,30 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 
 		switch (event.getAction()) {
 		case MotionEvent.ACTION_DOWN: // нажатие
-			
-			
+
 			break;
 		case MotionEvent.ACTION_MOVE: // движение
-//			EndGame();
-//			
-//			mActivity.finish();
+			
 			break;
 		case MotionEvent.ACTION_UP: // отпускание
+			// начнем новую игру, если не начата
 			if (!mGameStarted || !mGameThread.isAlive()) {
 				StartNewGame();
 				break;
-	
 			}
+			
+			//выстрел. Решил сделать на отпускание, 
+			// чтоб можно было добавить прицеливание по нажатию
 			if (mGameThread.isAlive()) mGameThread.Shoot(x, y);
 			
 		case MotionEvent.ACTION_CANCEL:
+			
 			break;
 		}
-//		tv.setText(sDown + "\n" + sMove + "\n" + sUp);
 		return true;
 	}
 
-	// ////Реализуем интерфейс обратного вызова для SurfaceHolder
+	// Реализуем интерфейс обратного вызова для SurfaceHolder
 	@Override
 	// Создание области рисования
 	public void surfaceCreated(SurfaceHolder holder) {
@@ -111,7 +111,6 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 	// Запуск новой игры
 	public void StartNewGame() {
 		// Подготовимся к новой игре
-		// ...
 		if (mGameStarted) EndGame();
 		mGameStarted=true;
 		
@@ -151,8 +150,6 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 				e.printStackTrace();
 			}
 		}
-		
-		
 	}
 	
 	public Activity getActivity(){

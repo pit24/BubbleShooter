@@ -7,7 +7,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 public class GameActivity extends Activity {
 
@@ -26,37 +25,36 @@ public class GameActivity extends Activity {
 		//получаем уже инициализированный компонент для рисования
 		GameView mGameView=(GameView) findViewById(R.id.gameview);
 		
-		
+		//инициализируем объект для управления игрой
 		if (mManager==null)
-			//инициализируем объект для управления игрой
 			mManager=new Manager(mGameView,this);
 		
 		
 	}
 	
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-	    super.onConfigurationChanged(newConfig);
-
+//	@Override
+//	public void onConfigurationChanged(Configuration newConfig) {
+//	    super.onConfigurationChanged(newConfig);
+//
 //	    // Checks the orientation of the screen
 //	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 //	        Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
 //	    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
 //	        Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
 //	    }
-	}
+//	}
 	
 	//Создаем меню
+	// Работает только для api_9
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    getMenuInflater().inflate(R.menu.mymenu, menu);
 	    return super.onCreateOptionsMenu(menu);
 	}
 	
-	// обработка нажатий
+	// обработка нажатий в меню
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-      // TODO Auto-generated method stub
-    	switch (item.getItemId()) {
+      switch (item.getItemId()) {
     	case R.id.menu_new:
     		mManager.StartNewGame();
     		break;

@@ -3,7 +3,6 @@ package pit.bubbleshooter;
 import java.util.ArrayList;
 import java.util.Random;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 
@@ -12,7 +11,7 @@ import android.graphics.Color;
 // Позиция в одномерном массиве используется как координата в сетке
 // ////////////////////////////////////////
 
-public class Grid implements RadiusChange {
+public class Grid implements RadiusChange{
 	private int mBHorisontal, mBVertical; // Ширина в пузырях по горизонтали и
 											// вертикали
 	private int mBCountInTwoRows; // количество пузырей в двух смежных рядах
@@ -187,7 +186,7 @@ public class Grid implements RadiusChange {
 	}
 
 	// Добавление указанного пузыря в сетку по заданному id
-	public boolean addInGrig(Bubble b, int id) {
+	public boolean addInGrig(Bubble b, int id, PlayingField PF) {
 		Point p;
 		// если id<0
 		if (id < 0)
@@ -221,7 +220,7 @@ public class Grid implements RadiusChange {
 			mStepToMooveDown--;
 			if (mStepToMooveDown<=0) {
 				mStepToMooveDown=GlobalParam.mStepToMooveGridDown;
-				addFixedBubblesLine();
+				addFixedBubblesLine(PF);
 			}
 		}
 		return true;
@@ -240,14 +239,17 @@ public class Grid implements RadiusChange {
 	}
 
 	// создание висячих пузырей
-	public void CreateFixedBubbles() {
+	public void CreateFixedBubbles(PlayingField PF) {
 		Point p;
 		for (int i = 0; i < (mBCountInTwoRows * (int) (mBVertical / 4)); i++) {
 			if (mrnd.nextInt(4) > 0) {
 				p = GetXYbyID(i);
-
+				
 				mBubbleArrFix.add(new Bubble((int) p.x, (int) p.y,
 						mBubbleRadius, RandColor()));
+				
+				PF.addRadiusListener(mBubbleArrFix.get(i));
+				
 			} else
 				mBubbleArrFix.add(null);
 		}
@@ -255,7 +257,7 @@ public class Grid implements RadiusChange {
 	}
 
 	// добавление пузырей в верх сетки.
-	public void addFixedBubblesLine() {
+	public void addFixedBubblesLine(PlayingField PF) {
 		Point p;
 		Bubble b;
 		int FirstLineLength=mBHorisontal-(mFirstRowLong?1:0);
@@ -264,6 +266,7 @@ public class Grid implements RadiusChange {
 			//if (mrnd.nextInt(4) > 0) {
 				b = new Bubble(0, 0, mBubbleRadius, RandColor());
 				b.setRoofId(mRoofId);
+				PF.addRadiusListener(b);
 				mBubbleArrFix.add(i, b);
 			//} else
 			//	mBubbleArrFix.add(i ,null);
@@ -423,21 +426,16 @@ public class Grid implements RadiusChange {
 
 	@Override
 	public void onRadiusChange(int radius, int spacing) {
-		for (int i = 0; i < mBubbleArrFix.size(); i++) {
-			if (mBubbleArrFix.get(i) != null)
-				mBubbleArrFix.get(i).onRadiusChange(radius, spacing);
-		}
 		mBubbleRadius = radius;
 		mSpacing = spacing;
 		reCalcPosition();
 	}
 
 	@Override
+	//заглушка
 	public boolean isAlive() {
-		// TODO Auto-generated method stub
 		return true;
-	}
-	
+	}	
 	// вернет на каком шаге до смещения сетки вниз находимся
 	public byte getStepGridDown(){
 		return (byte) (mStepToMooveDown-1);

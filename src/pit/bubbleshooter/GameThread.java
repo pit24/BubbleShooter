@@ -4,19 +4,20 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
-import android.widget.Toast;
 
 public class GameThread extends Thread {
 
 	// ссылка на менеджер игры
 	protected Manager mManager;
 
-	// ////игровое поле с объектами
+	// игровое поле с объектами
 	private PlayingField mField;
 
 	// пауза потока
 	public boolean mPause;
-	String mst;
+	
+	//TODO для отладки. Удалить
+	public String mst;
 
 	// вложеный интерфейсный класс. Для упрощения работы с канвой
 	private interface DrawHelper {
@@ -172,51 +173,7 @@ public class GameThread extends Thread {
 		}
 	}
 
-	//
-	// // Инициализация положения объектов, в соответствии с размерами экрана
-	// // @param screenHeight Высота экрана
-	// // @param screenWidth Ширина экрана
-	// public void initPositions(int screenHeight, int screenWidth) {
-	// int left = (screenWidth - FIELD_WIDTH) / 2;
-	// int top = (screenHeight - FIELD_HEIGHT) / 2;
-	//
-	// mField.set(left, top, left + FIELD_WIDTH, top + FIELD_HEIGHT);
-	//
-	// // // мячик ставится в центр поля
-	// // mBall.setCenterX(mField.centerX());
-	// // mBall.setCenterY(mField.centerY());
-	// //
-	// // // ракетка игрока - снизу по центру
-	// // mUs.setCenterX(mField.centerX());
-	// // mUs.setBottom(mField.bottom);
-	// //
-	// // // ракетка компьютера - сверху по центру
-	// // mThem.setCenterX(mField.centerX());
-	// // mThem.setTop(mField.top);
-	// // mInitialized = true;
-	// }
-	//
-	// // Обновление объектов на экране
-	// private void refreshCanvas(Canvas canvas) {
-	// // очистка
-	// canvas.drawColor(0, Mode.CLEAR);
-	//
-	// // рисуем игровое поле
-	// canvas.drawRect(mField, mPaint);
-	//
-	// // // рисуем игровые объекты
-	// // mBall.draw(canvas);
-	// // mUs.draw(canvas);
-	// // mThem.draw(canvas);
-	// // // вывод счета
-	// // mScorePaint.setColor(Color.RED);
-	// // canvas.drawText(String.valueOf(mThem.getScore()), mField.centerX(),
-	// // mField.top - 10, mScorePaint);
-	// // mScorePaint.setColor(Color.GREEN);
-	// // canvas.drawText(String.valueOf(mUs.getScore()), mField.centerX(),
-	// // mField.bottom + 25, mScorePaint);
-	// }
-	//
+	
 	// Обновление состояния игровых объектов
 	private int updateObjects() {
 		int i = mField.UpdatePosition();
@@ -230,15 +187,15 @@ public class GameThread extends Thread {
 
 	// выстрел по координатам
 	public void Shoot(float x2, float y2) {
-		int Speed = 1;// скорость движения шара в точках за одно обновление.
+		
 		if (y2 < mField.mY + mField.mHeight
 				- (mField.getBubbleRadius() + mField.getSpacing()) * 2
 				&& y2 > mField.mY
 				&& x2 > mField.mX
-				&& x2 < mField.mX + mField.mWidth) {
-			mField.mBubbleInGun.SetSpeedToPoint(x2 - mField.mX, y2 - mField.mY,
-					Speed);
-			mField.mBubbleArrFly.add(mField.mBubbleInGun);
+				&& x2 < mField.mX + mField.mWidth
+				&& mField.mBubbleFly==null) {
+			mField.mBubbleInGun.SetSpeedToPoint(x2 - mField.mX, y2 - mField.mY);
+			mField.mBubbleFly=mField.mBubbleInGun;
 			mField.GunCharge();
 		}
 		if (y2 > mField.mY + mField.mHeight
@@ -249,93 +206,5 @@ public class GameThread extends Thread {
 			mField.GunChange();
 		}
 	}
-	// //
-	// // if (mBall.getTop() > mUs.getTop()) {
-	// // mThem.incScore();
-	// // reset();
-	// // }
-	// // // проверка окончания игры
-	// // if (mUs.getScore() == mMaxScore || mThem.getScore() == mMaxScore) {
-	// // this.mRunning = false;
-	// // }
-	// }
-	//
-	// /**
-	// * Обработка нажатия кнопки
-	// *
-	// * @param keyCode
-	// * Код нажатой кнопки
-	// * @return Было ли обработано нажатие
-	// */
-	// public boolean doKeyDown(int keyCode) {
-	// switch (keyCode) {
-	// case KeyEvent.KEYCODE_DPAD_LEFT:
-	// // mUs.setDirection(GameObject.DIR_LEFT);
-	// return true;
-	// case KeyEvent.KEYCODE_DPAD_RIGHT:
-	// // mUs.setDirection(GameObject.DIR_RIGHT);
-	// return true;
-	// case KeyEvent.KEYCODE_DPAD_CENTER:
-	// mPaused = !mPaused;
-	// draw(mDrawPause);
-	// return true;
-	// default:
-	// return false;
-	// }
-	// }
-	//
-	// /**
-	// * Обработка отпускания кнопки
-	// *
-	// * @param keyCode
-	// * Код кнопки
-	// * @return Было ли обработано действие
-	// */
-	// public boolean doKeyUp(int keyCode) {
-	// if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
-	// || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-	// // mUs.setDirection(GameObject.DIR_NONE);
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// // Интелект для ракетки соперника
-	// private void moveAI() {
-	// // if (mThem.getLeft() > mBall.getRight())
-	// // mThem.setDirection(GameObject.DIR_LEFT);
-	// // else if (mThem.getRight() < mBall.getLeft())
-	// // mThem.setDirection(GameObject.DIR_RIGHT);
-	// // mThem.update();
-	// }
-	//
-	// // ограничивае передвижение ракеток
-	// // private void placeInBounds(Racquet r) {
-	// // if (r.getLeft() < mField.left)
-	// // r.setLeft(mField.left);
-	// // else if (r.getRight() > mField.right)
-	// // r.setRight(mField.right);
-	// // }
-	//
-	// // сброс игры
-	// private void reset() {
-	// // ставим мячик в центр
-	// // mBall.setCenterX(mField.centerX());
-	// // mBall.setCenterY(mField.centerY());
-	// // // задаем ему новый случайный угол
-	// // mBall.resetAngle();
-	// //
-	// // // ставим ракетки в центр
-	// // mUs.setCenterX(mField.centerX());
-	// // mThem.setCenterX(mField.centerX());
-	//
-	// // делаем паузу
-	// try {
-	// sleep(2000);
-	// } catch (InterruptedException iex) {
-	// }
-	// }
-	//
-	//
 
 }

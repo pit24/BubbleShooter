@@ -136,8 +136,8 @@ public class Bubble implements RadiusChange {
 		mYIncr = yS;
 	}
 
-	public void SetSpeedToPoint(float x2, float y2, int Speed) {
-		Speed = mRadius / 2;
+	public void SetSpeedToPoint(float x2, float y2) {
+		int Speed = mRadius / 2;
 		// Посчитаем количество шагов до точки (x2,y2)
 		float Steps = (float) (Math.sqrt((Math.pow((mPoint.x - x2), 2) + Math
 				.pow((mPoint.y - y2), 2))) / Speed);
