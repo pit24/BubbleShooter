@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_new"
+        android:title="New Game">
+    </item>
+    <item
+        android:id="@+id/menu_resume"
+        android:title="resume">
+    </item>
+    <item
+        android:id="@+id/menu_pause"
+        android:title="pause">
+    </item>
+    <item
+        android:id="@+id/menu_end"
+        android:title="end">
+    </item>
+
+</menu>

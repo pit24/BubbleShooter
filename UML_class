@@ -1,0 +1,42 @@
+@startuml
+
+class GameActivity{
+	# Manager mManager
+	# GameView mGameView
+	
+	void onCreate(Bundle savedInstanceState) 
+		
+}
+
+class GameView extends SurfaseView{
+	setOnTouchListener(OnTouchListener otl)
+
+}
+
+class Manager implements SurfaceHolder.Callback, OnTouchListener{
+	+GameView mGameView
+	-boolean mGameStarted
+	+GameThread mGameThread
+	
+	+void StartNewGame()
+	+void PauseGame()
+	+void ResumeGame()
+	+void EndGame()
+
+}
+
+class GameThread {
+	#Manager mManager
+	-PlayingField mField
+	+void run()
+	-void draw(DrawHelper helper)
+	-int updateObjects()
+	+void Shoot(float x2, float y2)
+}
+
+GameView -- Manager : Обрабатывает касания экрана >
+(GameView,Manager)..OnTouchListener
+
+
+
+@enduml
