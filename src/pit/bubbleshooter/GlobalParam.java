@@ -15,4 +15,5 @@ public final class GlobalParam {
 	public static int mScores;
 	public static int mMsInFrame=20; //милисекунд до следующего кадра (40 - 25кадр в сек)
 	public static byte mStepToMooveGridDown=3;
+	public static int mBubbleFlySpeed; //скорость полета шарика
 }

@@ -5,6 +5,8 @@ import java.util.Random;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.PointF;
 
 ///////////////////////////////////////////
 // Хитрая сетка для Прилипших пузырей
@@ -75,9 +77,9 @@ public class Grid implements RadiusChange{
 	}
 
 	// функция возвращает координаты центра пузыря по Индексу в массиве
-	Point GetXYbyID(int id) {
-		Point p;
-		p = new Point(0, 0);
+	PointF GetXYbyID(int id) {
+		PointF p;
+		p = new PointF(0f, 0f);
 
 		// определим четный ли ряд
 		int row = GetRow(id);
@@ -137,8 +139,8 @@ public class Grid implements RadiusChange{
 	// FixId - ИД пузыря в сетке
 	// b - пузырь летящий
 	public int GetTouchSector(int FixId, Bubble b) {
-		Point p1 = mBubbleArrFix.get(FixId).GetPosition();
-		Point p2 = b.GetPosition();
+		PointF p1 = mBubbleArrFix.get(FixId).GetPosition();
+		PointF p2 = b.GetPosition();
 		int sector = 0;
 		float g = (float) (2 * mBubbleRadius * 0.866025403784); // граница
 																// интервала
@@ -187,7 +189,7 @@ public class Grid implements RadiusChange{
 
 	// Добавление указанного пузыря в сетку по заданному id
 	public boolean addInGrig(Bubble b, int id, PlayingField PF) {
-		Point p;
+		PointF p;
 		// если id<0
 		if (id < 0)
 			return false;
@@ -228,7 +230,7 @@ public class Grid implements RadiusChange{
 
 	// пересчитывает координаты шаров при изменении размера шаров или движении в сетке
 	private void reCalcPosition() {
-		Point p;
+		PointF p;
 		for (int i = 0; i < mBubbleArrFix.size(); i++) {
 
 			if (mBubbleArrFix.get(i) != null) {
@@ -240,7 +242,7 @@ public class Grid implements RadiusChange{
 
 	// создание висячих пузырей
 	public void CreateFixedBubbles(PlayingField PF) {
-		Point p;
+		PointF p;
 		for (int i = 0; i < (mBCountInTwoRows * (int) (mBVertical / 4)); i++) {
 			if (mrnd.nextInt(4) > 0) {
 				p = GetXYbyID(i);

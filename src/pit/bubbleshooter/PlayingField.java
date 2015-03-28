@@ -50,7 +50,9 @@ public class PlayingField {
 
 		mBubbleRadius = Math.min(width / mBHorisontal / 2,
 				(int) (height / (Math.sqrt(3) * mBVertical + 2)));
-
+		
+		GlobalParam.mBubbleFlySpeed=mBubbleRadius/2;
+		
 		mSpacing = (int) mBubbleRadius / 10;
 		mBubbleRadius = mBubbleRadius - mSpacing;
 		mWidth = (mBubbleRadius + mSpacing) * 2 * mBHorisontal;
