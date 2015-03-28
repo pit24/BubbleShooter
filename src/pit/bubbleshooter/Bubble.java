@@ -60,7 +60,7 @@ public class Bubble implements RadiusChange {
 	}
 	
 	// Отрисовка пузыря
-	void draw(Canvas mCanvas, int xS, int yS) {
+	public void draw(Canvas mCanvas, int xS, int yS) {
 		// лопанье
 		if (mBurst) {
 			setRadius(mRadius - 1);
@@ -70,7 +70,7 @@ public class Bubble implements RadiusChange {
 	}
 
 	//Обновление позиции для летящего пузыря
-	void UpdatePosition(int width, int height) {
+	public void UpdatePosition(int width, int height) {
 		// отражение от стен
 		if (mPoint.x <= mRadius || mPoint.x >= (width - mRadius))
 			mXIncr = -mXIncr;

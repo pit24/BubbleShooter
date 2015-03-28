@@ -9,18 +9,15 @@ import android.view.View.OnTouchListener;
 
 public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 	private Activity mActivity;
-	public GameView mGameView;
+	private GameView mGameView;
 
-	public SurfaceHolder mSurfaceHolder;
+	private SurfaceHolder mSurfaceHolder;
 	
-	// флаг говорящий о том, что можно использовать mSurfaceHolder
-	private boolean mSurfaceActive;
-		
 	// флаг игра не завершена
 	private boolean mGameStarted;
 		
 	// поток рисования и вычислений (игровой логики)
-	public GameThread mGameThread;
+	private GameThread mGameThread;
 	
 	
 
@@ -34,7 +31,6 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 		mSurfaceHolder = mGameView.getHolder();
 		mSurfaceHolder.addCallback(this);
 
-		
 		mGameStarted=false;
 		
 		//считаем ресурсы в глобальные свойства
@@ -44,7 +40,7 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 		GlobalParam.mScores=0;
 	}
 
-	// Реализуем интерфейс обратного вызова для mGameView
+	// Реализуем интерфейс обратного вызова для mGameView. Касание экрана
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		float x = event.getX();
@@ -66,7 +62,7 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 			
 			//выстрел. Решил сделать на отпускание, 
 			// чтоб можно было добавить прицеливание по нажатию
-			if (mGameThread.isAlive()) mGameThread.Shoot(x, y);
+			if (mGameThread.isAlive()) mGameThread.onTouch(x, y);
 			
 		case MotionEvent.ACTION_CANCEL:
 			
@@ -79,7 +75,6 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 	@Override
 	// Создание области рисования
 	public void surfaceCreated(SurfaceHolder holder) {
-		mSurfaceActive = true;
 		if (mGameStarted) 
 			ResumeGame();
 		else
@@ -90,21 +85,16 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 	// Изменение области рисования
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		mSurfaceActive = false;
 		if (mGameStarted) PauseGame();
 		// тут надо изменить настройки экрана
 		mGameThread.refreshField(mGameView.getWidth(),mGameView.getHeight());	
 		
-		
-		mSurfaceActive = true;
 		if (mGameStarted) ResumeGame();
-	
 	}
 
 	@Override
 	// Уничтожение области рисования
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		mSurfaceActive = false;
 		if (mGameStarted) PauseGame();
 	}
 
@@ -121,21 +111,14 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 
 	// Пауза игрового процесса
 	public void PauseGame() {
-
-		// поставим поток на паузу
-		synchronized (mGameThread) {
-			mGameThread.mPause=true;
-		}
+		// поставим поток на паузу. Метод синхронизирован
+		mGameThread.setPause(true);
 	}
 
 	// Возобновление игрового процесса
 	public void ResumeGame() {
-
-		// запустим поток игры
-		synchronized (mGameThread) {
-			mGameThread.mPause=false;
-			mGameThread.notifyAll();
-		}
+		// запустим поток игры. Метод синхронизирован
+		mGameThread.setPause(false);
 	}
 
 	// Завершение игры
@@ -154,5 +137,13 @@ public class Manager implements SurfaceHolder.Callback, OnTouchListener {
 	
 	public Activity getActivity(){
 		return mActivity;
+	}
+	
+	public GameView getGameView(){
+		return mGameView;
+	}
+	
+	public SurfaceHolder getSurfaceHolder(){
+		return mSurfaceHolder;
 	}
 }

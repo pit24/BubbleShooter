@@ -5,27 +5,35 @@ import java.util.ArrayList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.PorterDuff.Mode;
 
 public class PlayingField {
-	public int mWidth, mHeight; // Габариты поля
-	public int mX, mY; // Положение поля
+	private int mWidth, mHeight; // Габариты поля
+	private int mX, mY; // Положение поля
 	private int mBHorisontal, mBVertical; // Ширина в пузырях по горизонтали и
 											// вертикали
 
 	private int mBubbleRadius; // радиус пузырей
 	private int mSpacing; // отступ между пузырями в сетке
 
-	public ArrayList<RadiusChange> mListener; // слушатели изменеия радиуса
+	private ArrayList<RadiusChange> mListener; // слушатели изменеия радиуса
 
-	public Bubble mBubbleNext, mBubbleInGun, mBubbleFly; // пузыри:
+	private Bubble mBubbleNext, mBubbleInGun, mBubbleFly; // пузыри:
 															// следующий,заряженый
 															// и летящий.
 
 	private Grid mGrid;
+	
+	private Paint mPaint; // общая кисть
+	
+	private Bitmap mBitmapFon; //Картинка фона
 
-	PlayingField(int width, int height) {
+	public PlayingField(int width, int height) {
+		mPaint = new Paint();
+			
 		mListener = new ArrayList<RadiusChange>();
 		// width, height - габариты view
 		mBHorisontal = 10; // задаем количество пузырей по горизонтали
@@ -36,7 +44,7 @@ public class PlayingField {
 		// сетка для размещения прилипших пузырей
 		mGrid = new Grid(mBHorisontal, mBVertical, mBubbleRadius, mSpacing);
 		addRadiusListener(mGrid);
-		
+
 		// зарядим пушку
 		GunCharge();
 
@@ -50,20 +58,25 @@ public class PlayingField {
 
 		mBubbleRadius = Math.min(width / mBHorisontal / 2,
 				(int) (height / (Math.sqrt(3) * mBVertical + 2)));
-		
-		GlobalParam.mBubbleFlySpeed=mBubbleRadius/2;
-		
+
+		GlobalParam.mBubbleFlySpeed = mBubbleRadius / 2;
+
 		mSpacing = (int) mBubbleRadius / 10;
 		mBubbleRadius = mBubbleRadius - mSpacing;
 		mWidth = (mBubbleRadius + mSpacing) * 2 * mBHorisontal;
-		// mBVertical = height / (mBubbleRadius + mSpacing) / 2;
-		// mHeight = (int) ((Math.sqrt(3) * (mBVertical-1) +3)*(mBubbleRadius +
-		// mSpacing));
 		mHeight = (int) ((Math.sqrt(3) * (mBVertical) + 2) * (mBubbleRadius + mSpacing));
-		// mHeight = (mBubbleRadius + mSpacing) * 2 * mBVertical;
 		mX = (width - mWidth) / 2;
 		mY = (height - mHeight) / 2;
 
+		// Смаштабируем картинку фона
+		mBitmapFon= Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
+		Canvas tempCanvas = new Canvas(mBitmapFon);
+		tempCanvas.drawColor(Color.BLACK, Mode.CLEAR);
+		tempCanvas.drawBitmap(GlobalParam.mBitmapFon,
+				new Rect(0, 0, GlobalParam.mBitmapFon.getWidth(), GlobalParam.mBitmapFon.getHeight()),
+				new Rect(0, 0, mWidth, mHeight), mPaint);
+		
+		
 		// оповестим шарики о изменении радиуса
 		for (int i = 0; i < mListener.size(); i++) {
 			mListener.get(i).onRadiusChange(mBubbleRadius, mSpacing);
@@ -77,18 +90,11 @@ public class PlayingField {
 		if (mBubbleInGun != null)
 			mBubbleInGun.SetPosition(mWidth / 2, mHeight
 					- (mBubbleRadius + mSpacing));
-
 	}
 
-	void draw(Canvas mCanvas) {
-
-		Paint mPaint = new Paint();
-		// mPaint.setColor(Color.GRAY);
-		// mCanvas.drawRect(mX, mY, mX+mWidth,mY+mHeight, mPaint);
-		Rect src = new Rect(0, 0, GlobalParam.mBitmapFon.getWidth(),
-				GlobalParam.mBitmapFon.getHeight());
-		Rect dst = new Rect(mX, mY, mX + mWidth, mY + mHeight);
-		mCanvas.drawBitmap(GlobalParam.mBitmapFon, src, dst, null);
+	// перерисовка игрового поля
+	public void draw(Canvas mCanvas) {
+		mCanvas.drawBitmap(mBitmapFon, mX, mY, mPaint);
 
 		mPaint.setColor(Color.DKGRAY);
 		mCanvas.drawRect(mX, mY + mHeight - (mBubbleRadius + mSpacing) * 2, mX
@@ -99,7 +105,8 @@ public class PlayingField {
 		mBubbleNext.draw(mCanvas, mX, mY);
 
 		// отрисовка летящего пузыря
-		if (mBubbleFly!=null) mBubbleFly.draw(mCanvas, mX, mY);
+		if (mBubbleFly != null)
+			mBubbleFly.draw(mCanvas, mX, mY);
 
 		// отрисовка висящих пузырей
 		mGrid.draw(mCanvas, mX, mY);
@@ -111,14 +118,14 @@ public class PlayingField {
 				mY + mHeight - (mBubbleRadius + mSpacing) * 0.5f, mPaint);
 
 		// отрисовка шага до опускания сетки
-		mCanvas.drawText(String.valueOf(mGrid.getStepGridDown()), mX + mWidth / 10*8,
-				mY + mHeight - (mBubbleRadius + mSpacing) * 0.5f, mPaint);
-
+		mCanvas.drawText(String.valueOf(mGrid.getStepGridDown()), mX + mWidth
+				/ 10 * 8, mY + mHeight - (mBubbleRadius + mSpacing) * 0.5f,
+				mPaint);
 	}
 
 	public int UpdatePosition() {
 		int FixId;
-		if (mBubbleFly!=null){
+		if (mBubbleFly != null) {
 			mBubbleFly.UpdatePosition(mWidth, mHeight);
 			FixId = mGrid.ifTouch(mBubbleFly);
 			if (FixId >= 0) {
@@ -126,21 +133,22 @@ public class PlayingField {
 				int sector = mGrid.GetTouchSector(FixId, mBubbleFly);
 				// тут нужно поставить летящий пузырь в сетку с id=mas[sector]
 				mGrid.addInGrig(mBubbleFly, mas[sector], this);
-				mBubbleFly=null;
+				mBubbleFly = null;
 			}
-			
-			if (mBubbleFly!=null && mBubbleFly.GetPosition().y < 0) {
+
+			if (mBubbleFly != null && mBubbleFly.GetPosition().y < 0) {
 				mBubbleFly.dispose();
-				mBubbleFly=null;
+				mBubbleFly = null;
 			}
 		}
-		//Удалим из сетки лопнутые пузыри
+		// Удалим из сетки лопнутые пузыри
 		mGrid.delFixBubble();
 
 		return mGrid.getEndGame();
 	}
 
-	void GunCharge() {
+	// перезарядка пушки
+	private void GunCharge() {
 		if (mBubbleNext == null) {
 			mBubbleNext = new Bubble(mWidth / 2 - (mBubbleRadius + mSpacing)
 					* 2, mHeight - (mBubbleRadius + mSpacing),
@@ -158,19 +166,33 @@ public class PlayingField {
 	}
 
 	// поменять местами шарики в пушке
-	void GunChange() {
+	private void GunChange() {
 		int c = mBubbleNext.getColor();
 		mBubbleNext.setColor(mBubbleInGun.getColor());
 		mBubbleInGun.setColor(c);
 	}
 
-	// GET - Теры
-	public int getBubbleRadius() {
-		return mBubbleRadius;
-	}
-
-	public int getSpacing() {
-		return mSpacing;
+	// Обработаем нажатие на поле
+	public void onTouch(float x2, float y2) {
+		// выстрел
+		if (y2 < mY + mHeight- (mBubbleRadius + mSpacing) * 2
+				&& y2 > mY
+				&& x2 > mX
+				&& x2 < mX + mWidth && mBubbleFly == null) {
+			mBubbleInGun.SetSpeedToPoint(x2 - mX, y2 - mY);
+			mBubbleFly = mBubbleInGun;
+			GunCharge();
+		}
+		//перемена местами зарядов в пушке
+		if (y2 > mY + mHeight
+				- (mBubbleRadius + mSpacing) * 2
+				&& y2 <= mY + mHeight
+				&& x2 > mX + mWidth / 2
+						- (mBubbleRadius + mSpacing) * 3
+				&& x2 < mX + mWidth / 2
+						+ (mBubbleRadius + mSpacing)) {
+			GunChange();
+		}
 	}
 
 	public void addRadiusListener(RadiusChange rl) {

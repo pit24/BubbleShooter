@@ -21,7 +21,7 @@ public class Grid implements RadiusChange{
 	private int mSpacing; // отступ между пузырями в сетке
 	private ArrayList<Bubble> mBubbleArrFix; // динамический массив прилипших
 												// пузырей
-	public boolean mFirstRowLong; // говорит о том, что первый ряд сетки длинее
+	private boolean mFirstRowLong; // говорит о том, что первый ряд сетки длинее
 									// второго
 	private boolean mRoofId; // текущий ид потолка. Меняется каждый проход
 								// цикла. Для определения оторванных пузырей
@@ -29,7 +29,9 @@ public class Grid implements RadiusChange{
 	private Random mrnd; // для случайного выбора цвета
 	private ArrayList<Integer> mColors; // динамический массив цветов
 	
-	private byte mStepToMooveDown; // количество шагов до опускания сетки вниз 
+	private byte mStepToMooveDown; // количество шагов до опускания сетки вниз
+	
+	private int intTemp1,intTemp2,intTemp3; //Временные переменные для частых вычислений. Чтоб не загаживать память локальными.
 
 	public Grid(int BHorisontal, int BVertical, int BubbleRadius, int Spacing) {
 
@@ -56,30 +58,28 @@ public class Grid implements RadiusChange{
 
 	// ///////////// Математика /////////////////////////////
 
-	// Возвращает номер строки по Индексу в массиве. Нумерация с 1
-	int GetRow(int id) {
-		int temp = id % mBCountInTwoRows; // положение в смежных рядах
+	// Возвращает номер строки по Индексу в массиве. Нумерация строк с 1 
+	private int GetRow(int id) {
+		intTemp1 = id % mBCountInTwoRows; // положение в смежных рядах
 											// 0..mBCountInTwoRows-1
-		int temp1 = mBHorisontal - (mFirstRowLong ? 0 : 1); // длинна первого
+		intTemp2 = mBHorisontal - (mFirstRowLong ? 0 : 1); // длинна первого
 															// ряда
-		return (int) (1 + Math.floor(id / mBCountInTwoRows) * 2 + ((temp < temp1) ? 0
-				: 1));
+		return (int) (1 + Math.floor(id / mBCountInTwoRows) * 2 + ((intTemp1 < intTemp2) ? 0: 1));
 	}
 
 	// Возвращает номер колонки по Индексу в массиве. Нумерация с 1
-	int GetCol(int id) {
-		int temp = id % mBCountInTwoRows; // положение в смежных рядах
+	private int GetCol(int id) {
+		intTemp1 = id % mBCountInTwoRows; // положение в смежных рядах
 											// 0..mBCountInTwoRows-1
-		int temp1 = mBHorisontal - (mFirstRowLong ? 0 : 1); // длинна первого
+		intTemp2 = mBHorisontal - (mFirstRowLong ? 0 : 1); // длинна первого
 															// ряда
 
-		return (int) 1 + ((temp < temp1) ? temp : (temp - temp1));
+		return (int) 1 + ((intTemp1 < intTemp2) ? intTemp1 : (intTemp1 - intTemp2));
 	}
 
 	// функция возвращает координаты центра пузыря по Индексу в массиве
-	PointF GetXYbyID(int id) {
-		PointF p;
-		p = new PointF(0f, 0f);
+	private PointF GetXYbyID(int id) {
+		PointF p = new PointF(0f, 0f);
 
 		// определим четный ли ряд
 		int row = GetRow(id);
@@ -102,19 +102,19 @@ public class Grid implements RadiusChange{
 
 	// проверяет длинный ряд или короткий // 0-длинный, 1- короткий
 	private int ifRowLong(int row) {
-		int temp = row % 2; // 0-если четный, 1- нечетный ряд
+		intTemp1 = row % 2; // 0-если четный, 1- нечетный ряд
 		// определим длинный ли ряд
-		if (temp == 1) {
-			temp = mFirstRowLong ? 0 : 1;
+		if (intTemp1 == 1) {
+			intTemp1 = mFirstRowLong ? 0 : 1;
 		} else {
-			temp = mFirstRowLong ? 1 : 0;
+			intTemp1 = mFirstRowLong ? 1 : 0;
 		}// 0-длинный, 1- короткий
 
-		return temp;
+		return intTemp1;
 	}
 
 	// по строке и столбцу получить id или -1 если такого не может быть
-	public int GetId(int row, int col) {
+	private int GetId(int row, int col) {
 		int result = -1;
 		int rLong = ifRowLong(row); // 0-длинн
 		if (col < 1 || col > (mBHorisontal - rLong)) {
@@ -142,7 +142,7 @@ public class Grid implements RadiusChange{
 		PointF p1 = mBubbleArrFix.get(FixId).GetPosition();
 		PointF p2 = b.GetPosition();
 		int sector = 0;
-		float g = (float) (2 * mBubbleRadius * 0.866025403784); // граница
+		float g = (float) (2f * mBubbleRadius * 0.866025403784f); // граница
 																// интервала
 																// по X
 		float x = (p2.x - p1.x); // прилежащий катет
@@ -173,17 +173,15 @@ public class Grid implements RadiusChange{
 		mColors.clear();
 		for (int i = 0; i < mBubbleArrFix.size(); i++) {
 			b = mBubbleArrFix.get(i);
-			if (b != null && !mBubbleArrFix.get(i).getBursted()
+			if (b != null && !b.getBursted()
 					&& !mColors.contains(b.getColor())) {
 				mColors.add(b.getColor());
 			}
-
 		}
 	}
 
 	// случайный цвет из доступных
 	public int RandColor() {
-		int mColor = 0;
 		return mColors.get(mrnd.nextInt(mColors.size()));
 	}
 
@@ -209,6 +207,7 @@ public class Grid implements RadiusChange{
 		} else
 			return false;
 
+		// лопнем пузыри и посчитаем очки
 		int sc = 0;
 		sc = burstSameColor(id);
 		sc = sc + burstNoRoof();
@@ -259,7 +258,7 @@ public class Grid implements RadiusChange{
 	}
 
 	// добавление пузырей в верх сетки.
-	public void addFixedBubblesLine(PlayingField PF) {
+	private void addFixedBubblesLine(PlayingField PF) {
 		Point p;
 		Bubble b;
 		int FirstLineLength=mBHorisontal-(mFirstRowLong?1:0);
@@ -278,19 +277,18 @@ public class Grid implements RadiusChange{
 
 	// проверка летящего пузыря на столкновение с висящими
 	public int ifTouch(Bubble bubble) {
-		int temp = -1;
-		int s = mBubbleArrFix.size();
-		for (int i = 0; i < s; i++) {
+		intTemp3 = -1;
+		for (int i = 0; i < mBubbleArrFix.size(); i++) {
 			if (mBubbleArrFix.get(i) != null
 					&& !mBubbleArrFix.get(i).getBursted()
 					&& bubble.Distance(mBubbleArrFix.get(i)) < mBubbleRadius * 2) {
 
-				temp = i;
+				intTemp3 = i;
 				break;
 			}
 
 		}
-		return temp;
+		return intTemp3;
 	}
 
 	// Возврящает id соседних ячеек или -1
@@ -402,7 +400,6 @@ public class Grid implements RadiusChange{
 			if (b != null && b.getDeleted()) {
 				mBubbleArrFix.set(i, null);
 			}
-
 		}
 	}
 
@@ -421,11 +418,11 @@ public class Grid implements RadiusChange{
 				temp = 1;
 				break;
 			}
-
 		}
 		return temp;
 	}
 
+	// реагируем на смену радиуса пузыря
 	@Override
 	public void onRadiusChange(int radius, int spacing) {
 		mBubbleRadius = radius;
@@ -438,12 +435,13 @@ public class Grid implements RadiusChange{
 	public boolean isAlive() {
 		return true;
 	}	
+	
 	// вернет на каком шаге до смещения сетки вниз находимся
 	public byte getStepGridDown(){
 		return (byte) (mStepToMooveDown-1);
 	}
 
-	// ///////////// Графика //////////////////////////////////
+	/////////////// Графика //////////////////////////////////
 
 	public void draw(Canvas mCanvas, int xS, int yS) {
 		Bubble b;
